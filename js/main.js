@@ -499,4 +499,103 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
     });
+
+    // Add event listeners for both textareas and file inputs
+    document.getElementById('json1').addEventListener('input', () => validateJson(1));
+    document.getElementById('json2').addEventListener('input', () => validateJson(2));
+    document.getElementById('file1').addEventListener('change', (e) => handleFileUpload(e, 1));
+    document.getElementById('file2').addEventListener('change', (e) => handleFileUpload(e, 2));
+
+    // Restructure the button group
+    const buttonGroup = document.querySelector('.button-group');
+    const buttonContainer = document.createElement('div');
+    buttonContainer.className = 'button-container';
+
+    // Move the buttons into the new container
+    const buttons = buttonGroup.querySelectorAll('button');
+    buttons.forEach(button => {
+        buttonContainer.appendChild(button);
+        // Initially disable all buttons
+        button.disabled = true;
+    });
+
+    // Add the button container as the first child
+    buttonGroup.insertBefore(buttonContainer, buttonGroup.firstChild);
+
+    // Add validation message div after the button container
+    const validationMsg = document.createElement('div');
+    validationMsg.id = 'validationMessage';
+    buttonGroup.appendChild(validationMsg);
+    // Set initial validation message
+    validationMsg.textContent = 'Provide valid Bundle/Package JSON for comparison';
+
+    // Track JSON types
+    let json1Type = '';
+    let json2Type = '';
+
+    function validateJson(inputNum) {
+        const jsonInput = document.getElementById(`json${inputNum}`);
+        const jsonLabel = jsonInput.closest('.textarea-wrapper').querySelector('h3');
+        const baseLabel = `${inputNum === 1 ? 'First' : 'Second'} JSON`;
+        
+        try {
+            const jsonData = JSON.parse(jsonInput.value);
+            
+            if (jsonData.data) {
+                jsonLabel.innerHTML = `${baseLabel} <span style="color: green">(Valid Bundle JSON)</span>`;
+                inputNum === 1 ? json1Type = 'bundle' : json2Type = 'bundle';
+            } else if (jsonData.results) {
+                jsonLabel.innerHTML = `${baseLabel} <span style="color: green">(Valid Package JSON)</span>`;
+                inputNum === 1 ? json1Type = 'package' : json2Type = 'package';
+            } else {
+                jsonLabel.innerHTML = `${baseLabel} <span style="color: red">(Invalid JSON)</span>`;
+                inputNum === 1 ? json1Type = '' : json2Type = '';
+            }
+        } catch (e) {
+            if (jsonInput.value.trim() !== '') {
+                jsonLabel.innerHTML = `${baseLabel} <span style="color: red">(Invalid JSON)</span>`;
+            } else {
+                jsonLabel.innerHTML = baseLabel;
+            }
+            inputNum === 1 ? json1Type = '' : json2Type = '';
+        }
+
+        updateButtonStates();
+    }
+
+    function updateButtonStates() {
+        const compareBundlesBtn = document.getElementById('compareBtn');
+        const comparePackagesBtn = document.getElementById('comparePackagesBtn');
+        const validationMessage = document.getElementById('validationMessage');
+
+        // Disable both buttons by default
+        compareBundlesBtn.disabled = true;
+        comparePackagesBtn.disabled = true;
+        
+        // Clear validation message
+        validationMessage.textContent = '';
+
+        // Enable appropriate button or show message
+        if (json1Type === 'bundle' && json2Type === 'bundle') {
+            compareBundlesBtn.disabled = false;
+        } else if (json1Type === 'package' && json2Type === 'package') {
+            comparePackagesBtn.disabled = false;
+        } else if (json1Type && json2Type && json1Type !== json2Type) {
+            validationMessage.textContent = 'Please provide same type of JSON (both Bundle or both Package) for comparison';
+        } else if (json1Type || json2Type) {
+            validationMessage.textContent = 'Please provide valid JSON in both inputs for comparison';
+        }
+    }
+
+    function handleFileUpload(event, inputNum) {
+        const file = event.target.files[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                document.getElementById(`json${inputNum}`).value = e.target.result;
+                validateJson(inputNum);
+            };
+            reader.readAsText(file);
+        }
+    }
 });
