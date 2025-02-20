@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AEM Server Comparison</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body>
+    <div class="container">
+        <h1>AEM Server Comparison</h1>
+        <p>This is a tool to compare two AEM servers</p>
+        
+        <!-- Add help button -->
+        <button id="helpBtn" class="help-btn">
+            <i class="fas fa-question-circle"></i>
+            Help
+        </button>
+        
+        <!-- Add modal dialog -->
+        <div id="helpModal" class="modal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h2>How to Use This Tool</h2>
+                    <span class="close">&times;</span>
+                </div>
+                <div class="modal-body">
+                    <h3>Getting Started</h3>
+                    <p>1. Upload or paste JSON data from two AEM servers you want to compare.</p>
+                    <p>2. Choose what to compare using one of the buttons:</p>
+                    <ul>
+                        <li><strong>Compare Bundles:</strong> Compares OSGi bundles between servers</li>
+                        <li><strong>Compare Packages:</strong> Compares installed packages between servers</li>
+                    </ul>
+                    
+                    <h3>Understanding the Results</h3>
+                    <p>The comparison table uses icons to show differences:</p>
+                    <ul>
+                        <li><i class="fas fa-exchange-alt"></i> Different Values</li>
+                        <li><i class="fas fa-minus-circle"></i> Only in First JSON</li>
+                        <li><i class="fas fa-plus-circle"></i> Only in Second JSON</li>
+                    </ul>
+                    <p>Different values are highlighted in red for easy identification.</p>
+                    
+                    <h3>Additional Features</h3>
+                    <ul>
+                        <li class="copy-wrapper">
+                            Getting bundle JSON: 
+                            <code>http://localhost:4502/system/console/bundles.json</code>
+                            <button class="copy-btn" data-text="http://localhost:4502/system/console/bundles.json">
+                                <i class="fas fa-copy"></i>
+                            </button>
+                        </li>
+                        <li class="copy-wrapper">
+                            Getting package JSON: 
+                            <code>http://localhost:4502/crx/packmgr/list.jsp</code>
+                            <button class="copy-btn" data-text="http://localhost:4502/crx/packmgr/list.jsp">
+                                <i class="fas fa-copy"></i>
+                            </button>
+                        </li>
+                        <li>Upload JSON files or paste content directly</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+        
+        <div class="json-container">
+            <div class="textarea-wrapper">
+                <h3>First JSON</h3>
+                <div class="input-group">
+                    <textarea id="json1" placeholder="Paste your first JSON here"></textarea>
+                    <div class="file-input">
+                        <input type="file" id="file1" accept=".json" class="file-upload" />
+                        <label for="file1">Upload JSON</label>
+                    </div>
+                </div>
+            </div>
+            <div class="textarea-wrapper">
+                <h3>Second JSON</h3>
+                <div class="input-group">
+                    <textarea id="json2" placeholder="Paste your second JSON here"></textarea>
+                    <div class="file-input">
+                        <input type="file" id="file2" accept=".json" class="file-upload" />
+                        <label for="file2">Upload JSON</label>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="button-group">
+            <button id="compareBtn">Compare Bundles</button>
+            <button id="comparePackagesBtn">Compare Packages</button>
+        </div>
+        <div id="result"></div>
+    </div>
+    <script src="js/main.js"></script>
+</body>
+</html> 
