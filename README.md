@@ -13,7 +13,7 @@ A web-based tool to compare bundles and packages between two AEM servers.
 
 ## How to Use
 
-1. Visit the [AEM Server Comparison Tool](https://yourusername.github.io/repository-name/)
+1. Visit the [AEM Server Comparison Tool](https://iamsudhanshu.github.io/AEM-Tools/)
 2. Get JSON data from your AEM servers:
    - For bundles: `http://localhost:4502/system/console/bundles.json`
    - For packages: `http://localhost:4502/crx/packmgr/list.jsp`
