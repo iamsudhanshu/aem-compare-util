@@ -32,4 +32,4 @@ Pull requests are welcome. For major changes, please open an issue first to disc
 
 ## License
 
-[MIT](https://choosealicense.com/licenses/mit/) 
+This project is licensed under the Apache License, Version 2.0 - see the [LICENSE](LICENSE) file for details. 

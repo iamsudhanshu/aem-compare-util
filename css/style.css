@@ -588,4 +588,32 @@ tr.identical {
 
 .download-btn i {
     font-size: 20px;
+}
+
+/* Footer styles */
+footer {
+    text-align: center;
+    padding: 20px;
+    margin-top: 40px;
+    border-top: 1px solid var(--border-color);
+}
+
+footer a {
+    color: var(--primary-color);
+    text-decoration: none;
+    transition: color 0.2s ease;
+}
+
+footer a:hover {
+    color: var(--primary-hover);
+}
+
+footer p {
+    margin: 10px 0;
+}
+
+footer .copyright {
+    color: var(--secondary-color);
+    font-size: 0.9em;
+    margin-top: 10px;
 } 
