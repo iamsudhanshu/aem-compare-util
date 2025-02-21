@@ -189,6 +189,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 return '<i class="fas fa-minus-circle" title="Only in First JSON"></i>';
             case 'Only in Second JSON':
                 return '<i class="fas fa-plus-circle" title="Only in Second JSON"></i>';
+            case 'Identical':
+                return '<i class="fas fa-check-circle" style="color: #28a745;" title="Identical"></i>';
             default:
                 return status;
         }
@@ -367,6 +369,93 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
+    function createToggleButton() {
+        const toggleButton = document.createElement('button');
+        toggleButton.id = 'toggleViewBtn';
+        toggleButton.textContent = 'Show All';
+        toggleButton.style.marginTop = '10px';
+        return toggleButton;
+    }
+
+    function createDownloadButton() {
+        const downloadButton = document.createElement('button');
+        downloadButton.className = 'download-btn';
+        downloadButton.innerHTML = '<i class="fas fa-download" title="Download as CSV"></i>';
+        downloadButton.style.display = 'none';
+        document.body.appendChild(downloadButton);
+        return downloadButton;
+    }
+
+    function downloadCSV(data, type) {
+        // Define headers based on type
+        let headers;
+        if (type === 'bundles') {
+            headers = [
+                'Name',
+                'Symbolic Name',
+                'Status',
+                'Version (First)',
+                'State (First)',
+                'Version (Second)',
+                'State (Second)'
+            ];
+        } else {
+            headers = [
+                'Name',
+                'Symbolic Name',
+                'Status',
+                'Version (First)',
+                'Created (First)',
+                'Size (First)',
+                'Version (Second)',
+                'Created (Second)',
+                'Size (Second)'
+            ];
+        }
+
+        // Convert data to CSV format
+        const csvRows = [];
+        csvRows.push(headers.join(','));
+
+        data.forEach(item => {
+            const row = type === 'bundles' ? [
+                `"${item.name.replace(/"/g, '""')}"`,
+                `"${item.symbolicName.replace(/"/g, '""')}"`,
+                item.status,
+                item.version1,
+                item.state1,
+                item.version2,
+                item.state2
+            ] : [
+                `"${item.name.replace(/"/g, '""')}"`,
+                `"${item.symbolicName.replace(/"/g, '""')}"`,
+                item.status,
+                item.version1,
+                item.created1,
+                item.size1,
+                item.version2,
+                item.created2,
+                item.size2
+            ];
+            csvRows.push(row.join(','));
+        });
+
+        // Create and trigger download
+        const csvString = csvRows.join('\n');
+        const blob = new Blob([csvString], { type: 'text/csv;charset=utf-8;' });
+        const link = document.createElement('a');
+        if (navigator.msSaveBlob) { // IE 10+
+            navigator.msSaveBlob(blob, 'comparison.csv');
+        } else {
+            link.href = URL.createObjectURL(blob);
+            link.download = 'comparison.csv';
+            link.style.display = 'none';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+    }
+
     compareBtn.addEventListener('click', () => {
         try {
             const obj1 = JSON.parse(json1.value);
@@ -376,10 +465,34 @@ document.addEventListener('DOMContentLoaded', () => {
                 throw new Error("Both JSONs must contain a 'data' array");
             }
 
+            // Find both differences and all entries
             const differences = findDifferences(obj1.data, obj2.data);
+            const allEntries = findAllEntries(obj1.data, obj2.data);
+            
+            // Store the data for toggle functionality
+            window.comparisonData = {
+                differences,
+                allEntries,
+                currentView: 'differences',
+                type: 'bundles'
+            };
 
             result.style.display = 'block';
             result.innerHTML = createTable(differences, 'bundles');
+            
+            // Add toggle button
+            const toggleBtn = createToggleButton();
+            result.insertBefore(toggleBtn, result.firstChild);
+            
+            // Add download button
+            const downloadBtn = createDownloadButton();
+            downloadBtn.style.display = 'block';
+            downloadBtn.onclick = () => {
+                const currentData = window.comparisonData.currentView === 'differences' 
+                    ? window.comparisonData.differences 
+                    : window.comparisonData.allEntries;
+                downloadCSV(currentData, window.comparisonData.type);
+            };
             
             // Initialize sorting after creating the table
             initializeTableSort(differences, 'bundles');
@@ -388,6 +501,8 @@ document.addEventListener('DOMContentLoaded', () => {
             result.style.display = 'block';
             result.className = 'error';
             result.textContent = 'Error: ' + error.message;
+            // Hide download button on error
+            document.querySelector('.download-btn')?.remove();
         }
     });
 
@@ -400,9 +515,34 @@ document.addEventListener('DOMContentLoaded', () => {
                 throw new Error("Both JSONs must contain a 'results' array");
             }
 
+            // Find both differences and all entries
             const differences = findPackageDifferences(obj1, obj2);
+            const allEntries = findAllPackageEntries(obj1, obj2);
+            
+            // Store the data for toggle functionality
+            window.comparisonData = {
+                differences,
+                allEntries,
+                currentView: 'differences',
+                type: 'packages'
+            };
+
             result.style.display = 'block';
             result.innerHTML = createTable(differences, 'packages');
+            
+            // Add toggle button
+            const toggleBtn = createToggleButton();
+            result.insertBefore(toggleBtn, result.firstChild);
+            
+            // Add download button
+            const downloadBtn = createDownloadButton();
+            downloadBtn.style.display = 'block';
+            downloadBtn.onclick = () => {
+                const currentData = window.comparisonData.currentView === 'differences' 
+                    ? window.comparisonData.differences 
+                    : window.comparisonData.allEntries;
+                downloadCSV(currentData, window.comparisonData.type);
+            };
             
             // Initialize sorting after creating the table
             initializeTableSort(differences, 'packages');
@@ -411,6 +551,8 @@ document.addEventListener('DOMContentLoaded', () => {
             result.style.display = 'block';
             result.className = 'error';
             result.textContent = 'Error: ' + error.message;
+            // Hide download button on error
+            document.querySelector('.download-btn')?.remove();
         }
     });
 
@@ -598,4 +740,151 @@ document.addEventListener('DOMContentLoaded', () => {
             reader.readAsText(file);
         }
     }
+
+    // Add new functions to find all entries
+    function findAllEntries(arr1, arr2) {
+        const allEntries = [];
+        const map1 = new Map(arr1.map(item => [item.symbolicName, item]));
+        const map2 = new Map(arr2.map(item => [item.symbolicName, item]));
+        
+        // Process all unique symbolic names
+        const allSymbolicNames = new Set([...map1.keys(), ...map2.keys()]);
+        
+        allSymbolicNames.forEach(symbolicName => {
+            const item1 = map1.get(symbolicName);
+            const item2 = map2.get(symbolicName);
+            
+            if (!item2) {
+                // Only in first JSON
+                allEntries.push({
+                    symbolicName,
+                    name: item1.name || '',
+                    version1: item1.version || '',
+                    state1: item1.state || '',
+                    version2: '',
+                    state2: '',
+                    status: 'Only in First JSON'
+                });
+            } else if (!item1) {
+                // Only in second JSON
+                allEntries.push({
+                    symbolicName,
+                    name: item2.name || '',
+                    version1: '',
+                    state1: '',
+                    version2: item2.version || '',
+                    state2: item2.state || '',
+                    status: 'Only in Second JSON'
+                });
+            } else {
+                // In both JSONs
+                const status = (item1.version !== item2.version || item1.state !== item2.state) 
+                    ? 'Different Values' 
+                    : 'Identical';
+                allEntries.push({
+                    symbolicName,
+                    name: item1.name || item2.name || '',
+                    version1: item1.version || '',
+                    state1: item1.state || '',
+                    version2: item2.version || '',
+                    state2: item2.state || '',
+                    status
+                });
+            }
+        });
+        
+        return allEntries;
+    }
+
+    function findAllPackageEntries(packages1, packages2) {
+        const allEntries = [];
+        const map1 = new Map(packages1.results.map(item => [`${item.name}_${item.group}`, item]));
+        const map2 = new Map(packages2.results.map(item => [`${item.name}_${item.group}`, item]));
+        
+        // Process all unique keys
+        const allKeys = new Set([...map1.keys(), ...map2.keys()]);
+        
+        allKeys.forEach(key => {
+            const item1 = map1.get(key);
+            const item2 = map2.get(key);
+            
+            if (!item2) {
+                // Only in first JSON
+                allEntries.push({
+                    name: item1.name,
+                    symbolicName: item1.group || '',
+                    version1: item1.version || '',
+                    created1: formatDate(item1.created) || '',
+                    size1: formatSize(item1.size),
+                    state1: item1.installed ? 'Installed' : 'Not Installed',
+                    version2: '',
+                    created2: '',
+                    size2: '',
+                    state2: '',
+                    status: 'Only in First JSON'
+                });
+            } else if (!item1) {
+                // Only in second JSON
+                allEntries.push({
+                    name: item2.name,
+                    symbolicName: item2.group || '',
+                    version1: '',
+                    created1: '',
+                    size1: '',
+                    state1: '',
+                    version2: item2.version || '',
+                    created2: formatDate(item2.created) || '',
+                    size2: formatSize(item2.size),
+                    state2: item2.installed ? 'Installed' : 'Not Installed',
+                    status: 'Only in Second JSON'
+                });
+            } else {
+                // In both JSONs
+                const status = (item1.version !== item2.version || 
+                              item1.created !== item2.created || 
+                              item1.size !== item2.size || 
+                              item1.installed !== item2.installed) 
+                    ? 'Different Values' 
+                    : 'Identical';
+                allEntries.push({
+                    name: item1.name,
+                    symbolicName: item1.group || '',
+                    version1: item1.version || '',
+                    created1: formatDate(item1.created) || '',
+                    size1: formatSize(item1.size),
+                    state1: item1.installed ? 'Installed' : 'Not Installed',
+                    version2: item2.version || '',
+                    created2: formatDate(item2.created) || '',
+                    size2: formatSize(item2.size),
+                    state2: item2.installed ? 'Installed' : 'Not Installed',
+                    status
+                });
+            }
+        });
+        
+        return allEntries;
+    }
+
+    // Modify the toggle button click handler to update download button functionality
+    document.addEventListener('click', (e) => {
+        if (e.target && e.target.id === 'toggleViewBtn') {
+            const data = window.comparisonData;
+            if (!data) return;
+
+            data.currentView = data.currentView === 'differences' ? 'all' : 'differences';
+            e.target.textContent = data.currentView === 'differences' ? 'Show All' : 'Show Differences';
+            
+            const displayData = data.currentView === 'differences' ? data.differences : data.allEntries;
+            result.innerHTML = createTable(displayData, data.type);
+            result.insertBefore(e.target, result.firstChild);
+            
+            // Update download button to use current view's data
+            const downloadBtn = document.querySelector('.download-btn');
+            if (downloadBtn) {
+                downloadBtn.onclick = () => downloadCSV(displayData, data.type);
+            }
+            
+            initializeTableSort(displayData, data.type);
+        }
+    });
 });

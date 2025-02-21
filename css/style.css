@@ -540,4 +540,52 @@ th[colspan] {
     border-radius: 4px;
     font-family: monospace;
     border: 1px solid #dee2e6;
+}
+
+/* Add styles for the toggle button */
+#toggleViewBtn {
+    background-color: var(--secondary-color);
+    margin-bottom: 15px;
+    display: block;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+#toggleViewBtn:hover {
+    background-color: #5a6268;
+}
+
+/* Add styles for identical entries */
+tr.identical {
+    color: #28a745;
+}
+
+.status-identical {
+    color: #28a745;
+}
+
+/* Add styles for the floating download button */
+.download-btn {
+    position: fixed;
+    bottom: 30px;
+    right: 30px;
+    background-color: var(--primary-color);
+    color: white;
+    padding: 15px;
+    border-radius: 50%;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+    cursor: pointer;
+    transition: all 0.3s ease;
+    z-index: 1000;
+    display: none; /* Initially hidden */
+}
+
+.download-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 12px rgba(0,0,0,0.3);
+    background-color: var(--primary-hover);
+}
+
+.download-btn i {
+    font-size: 20px;
 } 
